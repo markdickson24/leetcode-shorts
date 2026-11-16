@@ -1,0 +1,112 @@
+slug: best-time-to-buy-and-sell-stock
+number: 121
+title: Best Time to Buy and Sell Stock
+function_name: max_profit
+hook:
+  top: Easy money?
+  bottom: Not in O(n²).
+  spoken_top: Easy money, right?
+  spoken_bottom: Not if you check every pair.
+statement: |-
+  Buy one day, sell on a later day.
+  What's the biggest profit?
+array_arg: prices
+show_args: []
+example:
+  args: {prices: [7, 2, 5, 1, 6]}
+  expected: 5
+tests:
+  - {args: {prices: [7, 2, 5, 1, 6]}, expected: 5}
+  - {args: {prices: [7, 2, 5, 1, 6, 4]}, expected: 5}
+  - {args: {prices: [7, 6, 4, 3, 1]}, expected: 0}
+  - {args: {prices: [1, 2]}, expected: 1}
+  - {args: {prices: [2, 4, 1]}, expected: 2}
+  - {args: {prices: [3, 3, 3]}, expected: 0}
+  - {args: {prices: [5]}, expected: 0}
+approaches:
+  - name: Brute force
+    template: pairs_brute
+    time: O(n²)
+    space: O(1)
+    code: |
+      def max_profit(prices):
+          best, n = 0, len(prices)
+          for i in range(n):
+              for j in range(i + 1, n):
+                  gain = prices[j] - prices[i]
+                  best = max(best, gain)
+          return best
+    traced_code: |
+      def max_profit(prices):
+          best, n = 0, len(prices)
+          checks = 0
+          for i in range(n):
+              for j in range(i + 1, n):
+                  gain = prices[j] - prices[i]
+                  checks += 1
+                  new = gain > best
+                  best = max(best, gain)
+                  emit(i=i, j=j, label=f"{prices[j]} − {prices[i]} = {gain}", hit=new, best=f"best = {best}",
+                       say_bg={2: "Every buy day with\nevery later sell day...",
+                               8: "...keeping the best one."}.get(checks))
+          return best
+    highlights: {check: 3, hit: 4}
+    intro: |-
+      Easiest idea: try every
+      buy day with every sell day.
+    verdict: |-
+      {steps} pairs to find a profit
+      of 5. That's O(n²).
+  - name: One pass
+    template: sliding_window
+    time: O(n)
+    space: O(1)
+    code: |
+      def max_profit(prices):
+          buy, best = 0, 0
+          for day in range(1, len(prices)):
+              if prices[day] < prices[buy]:
+                  buy = day
+              else:
+                  gain = prices[day] - prices[buy]
+                  best = max(best, gain)
+          return best
+    traced_code: |
+      def max_profit(prices):
+          buy, best = 0, 0
+          for day in range(1, len(prices)):
+              if prices[day] < prices[buy]:
+                  emit(l=buy, r=day, line=3, label=f"{prices[day]} < {prices[buy]}: new low",
+                       detail="buy here instead",
+                       say="Cheaper day? Move the\nbuy pointer there." if buy == 0 else None)
+                  buy = day
+              else:
+                  gain = prices[day] - prices[buy]
+                  new = gain > best
+                  best = max(best, gain)
+                  emit(l=buy, r=day, line=5, label=f"sell {prices[day]} − buy {prices[buy]} = {gain}",
+                       hit=new, best=f"best = {best}")
+          emit(l=buy, r=len(prices) - 1, line=7, label="done", best=f"best = {best}", result=f"return {best}")
+          return best
+    highlights: {}
+    intro: |-
+      Keep the cheapest day so far.
+      Sell each day against it.
+    verdict: One pass. {steps} steps instead of {first_steps}.
+challenge: |-
+  Pause. Do you really need
+  to check every pair?
+outro:
+  - |-
+    Track the lowest price so far.
+    That's the whole trick.
+  - |-
+    How fast did you get it?
+    Comment your time.
+youtube:
+  title: Best Time to Buy and Sell Stock in one pass (O(n²) → O(n)) #shorts
+  description: |-
+    LeetCode #121, Best Time to Buy and Sell Stock: brute force over every pair vs one pass that tracks the cheapest day so far.
+
+    #leetcode #coding #python #codinginterview #shorts
+  tags: [leetcode, best time to buy and sell stock, sliding window, coding interview, python, algorithms]

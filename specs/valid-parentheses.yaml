@@ -1,0 +1,83 @@
+slug: valid-parentheses
+number: 20
+title: Valid Parentheses
+function_name: is_valid
+hook:
+  top: Every interview.
+  bottom: Every time.
+  spoken_top: This shows up in every interview...
+  spoken_bottom: so you'd better know it cold.
+statement: |-
+  Does every bracket close
+  in the right order?
+array_arg: s
+show_args: []
+example:
+  args: {s: "{[()]()}"}
+  expected: true
+tests:
+  - {args: {s: "{[()]()}"}, expected: true}
+  - {args: {s: "([)]"}, expected: false}
+  - {args: {s: "(("}, expected: false}
+  - {args: {s: "]"}, expected: false}
+  - {args: {s: "()[]{}"}, expected: true}
+  - {args: {s: ""}, expected: true}
+approaches:
+  - name: Stack
+    template: stack
+    time: O(n)
+    space: O(n)
+    memory_label: stack
+    code: |
+      def is_valid(s):
+          pairs = {")": "(", "]": "[", "}": "{"}
+          st = []
+          for c in s:
+              if c not in pairs:
+                  st.append(c)
+              elif not st or st.pop() != pairs[c]:
+                  return False
+          return not st
+    traced_code: |
+      def is_valid(s):
+          pairs = {")": "(", "]": "[", "}": "{"}
+          st = []
+          closes = 0
+          for i, c in enumerate(s):
+              if c not in pairs:
+                  emit(i=i, line=4, action="push", value=c, label=f"'{c}' opens: push it",
+                       say="Openers go on the stack." if i == 0 else None)
+                  st.append(c)
+              elif not st or st.pop() != pairs[c]:
+                  emit(i=i, line=6, action="pop", ok=False, label=f"'{c}' doesn't match",
+                       result="return False")
+                  return False
+              else:
+                  closes += 1
+                  emit(i=i, line=5, action="pop", ok=True, label=f"'{c}' closes '{pairs[c]}'",
+                       say="A closer must match the top.\nIt does, so pop it." if closes == 1 else None)
+          emit(i=len(s) - 1, line=7, action="none", hit=not st,
+               label=f"stack is {'empty' if not st else 'not empty'}", result=f"return {not st}")
+          return not st
+    highlights: {}
+    intro: |-
+      Push every opener. Every closer
+      must match the top of the stack.
+    verdict: |-
+      {steps} steps, one pass.
+      O(n) time.
+challenge: ""
+outro:
+  - |-
+    Last opened, first closed.
+    That's why it's a stack.
+  - |-
+    Could you code it from memory?
+    Tell me below.
+youtube:
+  title: Valid Parentheses with a stack, animated #shorts
+  description: |-
+    LeetCode #20, Valid Parentheses: push openers, pop on closers, and check the match. O(n) time.
+
+    #leetcode #coding #python #codinginterview #shorts
+  tags: [leetcode, valid parentheses, stack, coding interview, python, algorithms]

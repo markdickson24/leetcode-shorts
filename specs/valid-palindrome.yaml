@@ -1,0 +1,84 @@
+slug: valid-palindrome
+number: 125
+title: Valid Palindrome
+function_name: is_palindrome
+hook:
+  top: Looks easy, right?
+  bottom: Watch the comma.
+  spoken_top: This one looks easy...
+  spoken_bottom: until you hit the comma.
+statement: |-
+  Ignoring case and symbols, does
+  it read the same both ways?
+array_arg: s
+show_args: []
+example:
+  args: {s: "Taco, cat"}
+  expected: true
+tests:
+  - {args: {s: "Taco, cat"}, expected: true}
+  - {args: {s: "race a car"}, expected: false}
+  - {args: {s: " "}, expected: true}
+  - {args: {s: "ab_a"}, expected: true}
+  - {args: {s: "0P"}, expected: false}
+  - {args: {s: "Was it a car or a cat I saw?"}, expected: true}
+approaches:
+  - name: Two pointers
+    template: two_pointers
+    time: O(n)
+    space: O(1)
+    code: |
+      def is_palindrome(s):
+          l, r = 0, len(s) - 1
+          while l < r:
+              if not s[l].isalnum(): l += 1
+              elif not s[r].isalnum(): r -= 1
+              elif s[l].lower() != s[r].lower():
+                  return False
+              else: l, r = l + 1, r - 1
+          return True
+    traced_code: |
+      def is_palindrome(s):
+          l, r = 0, len(s) - 1
+          skips = matches = 0
+          while l < r:
+              if not s[l].isalnum():
+                  emit(l=l, r=r, line=2, label=f"'{s[l]}' isn't a letter", detail="skip it: L moves right")
+                  l += 1
+              elif not s[r].isalnum():
+                  skips += 1
+                  emit(l=l, r=r, line=3, label=f"'{s[r]}' isn't a letter", detail="skip it: R moves left",
+                       say="Not a letter? Skip it." if skips == 1 else None)
+                  r -= 1
+              elif s[l].lower() != s[r].lower():
+                  emit(l=l, r=r, line=5, label=f"'{s[l]}' ≠ '{s[r]}'", hit=False, result="return False")
+                  return False
+              else:
+                  matches += 1
+                  emit(l=l, r=r, line=6, label=f"'{s[l]}' == '{s[r]}'", detail="match: both move in",
+                       say=f"{s[l].upper()} and {s[r]} match,\nso both pointers move in." if matches == 1 else None)
+                  l, r = l + 1, r - 1
+          emit(l=l, r=r, line=7, label="the pointers met", hit=True, result="return True")
+          return True
+    highlights: {}
+    intro: |-
+      One pointer on each end.
+      Walk them toward the middle.
+    verdict: |-
+      {steps} steps, and no cleaned-up
+      copy of the string needed.
+challenge: ""
+outro:
+  - |-
+    O(n) time, O(1) space.
+    That's the answer they want.
+  - |-
+    Did the comma get you?
+    Tell me in the comments.
+youtube:
+  title: Valid Palindrome with two pointers (the comma trap) #shorts
+  description: |-
+    LeetCode #125, Valid Palindrome: two pointers that skip symbols, compare case-insensitively, and meet in the middle. O(n) time, O(1) space.
+
+    #leetcode #coding #python #codinginterview #shorts
+  tags: [leetcode, valid palindrome, two pointers, coding interview, python, algorithms]

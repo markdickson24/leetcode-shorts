@@ -1,0 +1,80 @@
+slug: binary-search
+number: 704
+title: Binary Search
+function_name: search
+hook:
+  top: 8 numbers.
+  bottom: 3 looks.
+  spoken_top: Eight numbers...
+  spoken_bottom: and I'll find it in three looks.
+statement: |-
+  The list is sorted. Find the target's
+  index, or −1 if it isn't there.
+array_arg: nums
+show_args: [target]
+example:
+  args: {nums: [1, 3, 4, 7, 9, 11, 15, 20], target: 15}
+  expected: 6
+tests:
+  - {args: {nums: [1, 3, 4, 7, 9, 11, 15, 20], target: 15}, expected: 6}
+  - {args: {nums: [1, 3, 4, 7, 9, 11, 15, 20], target: 5}, expected: -1}
+  - {args: {nums: [5], target: 5}, expected: 0}
+  - {args: {nums: [5], target: 2}, expected: -1}
+  - {args: {nums: [-4, 0, 2, 8], target: -4}, expected: 0}
+  - {args: {nums: [-4, 0, 2, 8], target: 8}, expected: 3}
+approaches:
+  - name: Binary search
+    template: binary_search
+    time: O(log n)
+    space: O(1)
+    code: |
+      def search(nums, target):
+          l, r = 0, len(nums) - 1
+          while l <= r:
+              m = (l + r) // 2
+              if nums[m] == target: return m
+              if nums[m] < target: l = m + 1
+              else: r = m - 1
+          return -1
+    traced_code: |
+      def search(nums, target):
+          l, r = 0, len(nums) - 1
+          looks = 0
+          while l <= r:
+              m = (l + r) // 2
+              looks += 1
+              if nums[m] == target:
+                  emit(l=l, r=r, m=m, line=3, label=f"nums[{m}] = {nums[m]}", hit=True,
+                       result=f"return {m}", say=f"Look number {looks}. Found it.")
+                  return m
+              if nums[m] < target:
+                  emit(l=l, r=r, m=m, line=4, label=f"{nums[m]} < {target}", detail="it's right of M: L = M + 1",
+                       say=f"{nums[m]} is too small, so the\nwhole left half is gone." if looks == 1 else None)
+                  l = m + 1
+              else:
+                  emit(l=l, r=r, m=m, line=5, label=f"{nums[m]} > {target}", detail="it's left of M: R = M − 1")
+                  r = m - 1
+          emit(l=l, r=r, m=min(max(r, 0), len(nums) - 1), line=6, label="range is empty", result="return -1")
+          return -1
+    highlights: {}
+    intro: |-
+      Check the middle. Throw away
+      the half it can't be in.
+    verdict: |-
+      {steps} looks instead of up to 8.
+      Double the list, one more look.
+challenge: ""
+outro:
+  - |-
+    Halving every step means
+    O(log n). A billion items? ~30 looks.
+  - |-
+    Ever had an off-by-one here?
+    Tell me in the comments.
+youtube:
+  title: Binary Search in 3 looks (why it's O(log n)) #shorts
+  description: |-
+    LeetCode #704, Binary Search: check the middle, drop half the list, repeat. O(log n) time.
+
+    #leetcode #coding #python #codinginterview #shorts
+  tags: [leetcode, binary search, coding interview, python, algorithms, big o]

@@ -1,0 +1,18 @@
+# The publishing queue, in order. A problem is only picked once every template it lists
+# exists in shorts/templates/. Problems with a file in specs/ use it; the rest get one from Claude.
+- {slug: two-sum, number: 1, title: Two Sum, templates: [pairs_brute, hashmap_scan]}
+- {slug: contains-duplicate, number: 217, title: Contains Duplicate, templates: [pairs_brute, hashmap_scan]}
+
+- {slug: valid-palindrome, number: 125, title: Valid Palindrome, templates: [two_pointers]}
+- {slug: two-sum-ii-input-array-is-sorted, number: 167, title: Two Sum II, templates: [pairs_brute, two_pointers]}
+- {slug: container-with-most-water, number: 11, title: Container With Most Water, templates: [pairs_brute, two_pointers]}
+
+- {slug: best-time-to-buy-and-sell-stock, number: 121, title: Best Time to Buy and Sell Stock, templates: [pairs_brute, sliding_window]}
+- {slug: longest-substring-without-repeating-characters, number: 3, title: Longest Substring Without Repeating Characters, templates: [sliding_window]}
+
+- {slug: valid-parentheses, number: 20, title: Valid Parentheses, templates: [stack]}
+
+- {slug: binary-search, number: 704, title: Binary Search, templates: [binary_search]}
+- {slug: search-in-rotated-sorted-array, number: 33, title: Search in Rotated Sorted Array, templates: [binary_search]}
+
+# Ideas for later templates: tree_dfs, grid_bfs, dp_table, linked_list
