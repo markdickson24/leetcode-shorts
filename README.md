@@ -5,10 +5,11 @@ Automated YouTube Shorts that animate LeetCode solutions in Manim, with ElevenLa
 ```
 problems.yaml ─► spec (Claude, schema-forced) ─► verify (run code + traces) ─► render (Manim templates)
                                                                                    │
-                     you approve in YouTube Studio ◄── ping ◄── upload as PRIVATE ◄┘
+     goes public at its slot unless you cancel ◄── ping ◄── upload private + slot ◄┘
 ```
 
-Nothing goes public without you. Claude writes **data** (narration, solution code, traced code, test
+Each video gets at least 10 hours for review before its slot, and you can cancel it in Studio.
+Claude writes **data** (narration, solution code, traced code, test
 cases), never Manim code, and every spec has to pass `verify` before a frame is rendered: solutions run
 against the tests in a separate process, and the animation comes from the trace of the code that
 actually ran.
@@ -66,8 +67,9 @@ narration is good.
 4. Get the YouTube values with `python scripts/youtube_auth.py client_secret.json` (steps in that file).
 5. Test it from **Actions → daily-short → Run workflow** with upload off. The MP4 shows up as a build artifact.
 
-After that it runs daily at 10:17 ET, uploads the next problem as private, commits the spec and
-`published.json`, and pings you. Review on your phone in YouTube Studio, then publish or schedule.
+After that it runs daily at 10:17 ET, uploads the next problem as private with a publish time
+tomorrow, commits the spec and `published.json`, and pings you with that time. Review on your phone
+in YouTube Studio, and cancel the schedule there if it shouldn't go out.
 
 ## Templates
 
@@ -97,6 +99,10 @@ Trees and grids need new drawing code; the array row and pointers won't cover th
 
 - **API uploads start private.** Until Google audits your API project, uploads are locked private
   anyway. Request the audit once the channel is real.
+- **Scheduled publishing.** Each upload is scheduled to go public tomorrow at a rotating weekday ×
+  time slot (07:00, 12:00, 17:00, 20:00 ET; see `shorts/slots.py`), so you can learn which times work.
+  It goes public at that slot unless you cancel the schedule in Studio. `--no-schedule` (or the
+  workflow's `schedule` input) keeps a video private instead.
 - **ElevenLabs free tier:** API access only to premade voices, and, as far as I know, no commercial
   use. You need a paid plan before monetizing.
 - **Don't let it become slop.** YouTube demonetizes mass-produced, near-identical videos. The review

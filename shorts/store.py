@@ -45,9 +45,12 @@ def published():
     return json.loads(PUBLISHED.read_text()) if PUBLISHED.exists() else {}
 
 
-def mark_published(slug, video_id):
+def mark_published(slug, video_id, slot=None):
     data = published()
     data[slug] = {"video_id": video_id, "at": datetime.now(timezone.utc).isoformat(timespec="seconds")}
+    if slot is not None:
+        data[slug].update(publish_at=slot.publish_at.astimezone(timezone.utc).isoformat(timespec="seconds"),
+                          weekday=slot.weekday, window=slot.window)
     PUBLISHED.write_text(json.dumps(data, indent=2) + "\n")
 
 

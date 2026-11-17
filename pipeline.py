@@ -7,7 +7,8 @@
   python pipeline.py render <slug> [--preview] render without uploading
 
 End to end = spec (saved one, or generate + retry until it verifies) -> verify -> render
--> upload as PRIVATE -> ping you to review. Nothing goes public without you.
+-> upload as PRIVATE with a scheduled publish slot (shorts/slots.py) -> ping you.
+It goes public at that slot unless you cancel it in Studio; --no-schedule keeps it private.
 """
 import argparse
 import sys
@@ -46,7 +47,13 @@ def ensure_spec(problem, regenerate=False):
     raise SystemExit(f"gave up on {problem['slug']} after {MAX_ATTEMPTS} attempts")
 
 
-def run(problem, upload=False, quality="final"):
+def scheduled_message(title, slot, url):
+    t = slot.publish_at
+    when = f"{t:%-I}{t:%p}".lower()
+    return f"🎬 {title} goes public {slot.weekday} {when} ET ({t:%b} {t.day}) unless you cancel: {url}"
+
+
+def run(problem, upload=False, quality="final", schedule=True):
     from shorts.publish import notify
     from shorts.render import render
 
@@ -59,11 +66,22 @@ def run(problem, upload=False, quality="final"):
     print(f"rendered {video}")
     if upload:
         from shorts.publish import upload as yt_upload
-        vid = yt_upload(video, spec.youtube)
-        store.mark_published(spec.slug, vid)
+        slot = None
+        if schedule:
+            import random
+            from datetime import datetime
+            from shorts.slots import TZ, pick_slot
+            slot = pick_slot(datetime.now(TZ), store.published(), random.Random())
+        vid = yt_upload(video, spec.youtube, publish_at=slot.publish_at if slot else None)
+        store.mark_published(spec.slug, vid, slot)
         url = f"https://studio.youtube.com/video/{vid}/edit"
-        print(f"uploaded (private): {url}")
-        notify(f"🎬 {spec.title} is ready for review: {url}", slug=spec.slug, video_id=vid)
+        if slot:
+            print(f"uploaded (private, public at {slot.publish_at:%a %Y-%m-%d %H:%M %Z}): {url}")
+            notify(scheduled_message(spec.title, slot, url), slug=spec.slug, video_id=vid,
+                   publish_at=slot.publish_at.isoformat())
+        else:
+            print(f"uploaded (private): {url}")
+            notify(f"🎬 {spec.title} is ready for review: {url}", slug=spec.slug, video_id=vid)
     return video
 
 
@@ -73,6 +91,8 @@ def main():
     ap.add_argument("slug", nargs="?")
     ap.add_argument("--upload", action="store_true", help="upload to YouTube as private")
     ap.add_argument("--preview", action="store_true", help="fast low-res render")
+    ap.add_argument("--no-schedule", action="store_true",
+                    help="upload without a publish time (stays private until you publish it)")
     a = ap.parse_args()
     quality = "preview" if a.preview else "final"
 
@@ -81,14 +101,14 @@ def main():
         if problem is None:
             print("queue is empty (or every remaining problem needs a template you haven't built)")
             return
-        run(problem, a.upload, quality)
+        run(problem, a.upload, quality, schedule=not a.no_schedule)
         return
 
     if not a.slug:
         ap.error(f"{a.command} needs a slug")
     problem = store.problem(a.slug)
     if a.command == "run":
-        run(problem, a.upload, quality)
+        run(problem, a.upload, quality, schedule=not a.no_schedule)
     elif a.command == "generate":
         ensure_spec(problem, regenerate=True)
     elif a.command == "verify":

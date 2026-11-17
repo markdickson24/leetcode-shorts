@@ -2,12 +2,25 @@
 import json
 import os
 import urllib.request
+from datetime import timezone
 
 SCOPES = ["https://www.googleapis.com/auth/youtube.upload"]
 
 
-def upload(path, meta, privacy="private") -> str:
-    """Upload as private by default: you review in YouTube Studio, then publish."""
+def upload_body(meta, privacy="private", publish_at=None) -> dict:
+    """Video resource for videos.insert. With publish_at, YouTube makes it public at that time."""
+    status = {"privacyStatus": privacy, "selfDeclaredMadeForKids": False}
+    if publish_at is not None:
+        status["publishAt"] = publish_at.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return {
+        "snippet": {"title": meta.title[:100], "description": meta.description,
+                    "tags": meta.tags, "categoryId": "27"},  # 27 = Education
+        "status": status,
+    }
+
+
+def upload(path, meta, privacy="private", publish_at=None) -> str:
+    """Upload as private; with publish_at it goes public then unless you cancel it in Studio."""
     from google.oauth2.credentials import Credentials
     from googleapiclient.discovery import build
     from googleapiclient.http import MediaFileUpload
@@ -16,12 +29,7 @@ def upload(path, meta, privacy="private") -> str:
                         client_id=os.environ["YT_CLIENT_ID"], client_secret=os.environ["YT_CLIENT_SECRET"],
                         token_uri="https://oauth2.googleapis.com/token", scopes=SCOPES)
     yt = build("youtube", "v3", credentials=creds, cache_discovery=False)
-    body = {
-        "snippet": {"title": meta.title[:100], "description": meta.description,
-                    "tags": meta.tags, "categoryId": "27"},  # 27 = Education
-        "status": {"privacyStatus": privacy, "selfDeclaredMadeForKids": False},
-    }
-    req = yt.videos().insert(part="snippet,status", body=body,
+    req = yt.videos().insert(part="snippet,status", body=upload_body(meta, privacy, publish_at),
                              media_body=MediaFileUpload(str(path), mimetype="video/mp4", resumable=True))
     resp = None
     while resp is None:

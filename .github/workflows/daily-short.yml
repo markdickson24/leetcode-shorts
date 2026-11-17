@@ -12,6 +12,10 @@ on:
         description: "Upload to YouTube (as private)"
         type: boolean
         default: true
+      schedule:
+        description: "Schedule a publish time (off = stay private)"
+        type: boolean
+        default: true
 
 permissions:
   contents: write   # to commit new specs and published.json
@@ -56,9 +60,11 @@ jobs:
           NOTIFY_WEBHOOK_URL: ${{ secrets.NOTIFY_WEBHOOK_URL }}
           SLUG: ${{ inputs.slug }}
           UPLOAD: ${{ github.event_name == 'schedule' || inputs.upload }}
+          SCHEDULE: ${{ github.event_name == 'schedule' || inputs.schedule }}
         run: |
           FLAGS=""
           if [ "$UPLOAD" = "true" ]; then FLAGS="--upload"; fi
+          if [ "$SCHEDULE" != "true" ]; then FLAGS="$FLAGS --no-schedule"; fi
           if [ -n "$SLUG" ]; then
             python pipeline.py run "$SLUG" $FLAGS
           else
