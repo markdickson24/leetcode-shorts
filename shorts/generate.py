@@ -55,14 +55,19 @@ def generate(problem: dict, feedback: str | None = None) -> Spec:
     if feedback:
         prompt += f"\n\nYour previous attempt failed verification. Fix these problems:\n{feedback}"
 
+    # Current models reject a forced tool_choice, so the prompt asks for submit_spec and we check
+    # that it was called; a miss raises, and ensure_spec feeds the error back on the next attempt.
     msg = anthropic.Anthropic().messages.create(
         model=MODEL,
-        max_tokens=8000,
+        max_tokens=16000,
         tools=[{"name": "submit_spec", "description": "Submit the finished video spec.",
                 "input_schema": _inline_refs(Spec.model_json_schema())}],
-        tool_choice={"type": "tool", "name": "submit_spec"},
+        tool_choice={"type": "auto"},
         messages=[{"role": "user", "content": prompt}],
     )
-    data = next(b.input for b in msg.content if b.type == "tool_use")
+    data = next((b.input for b in msg.content if b.type == "tool_use" and b.name == "submit_spec"), None)
+    if data is None:
+        raise ValueError(f"no submit_spec tool call (stop_reason={msg.stop_reason}); "
+                         "return the spec by calling the submit_spec tool")
     data.update(slug=problem["slug"], number=problem["number"])
     return Spec.model_validate(data)
