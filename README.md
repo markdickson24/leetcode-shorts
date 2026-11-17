@@ -71,6 +71,15 @@ After that it runs daily at 10:17 ET, uploads the next problem as private with a
 tomorrow, commits the spec and `published.json`, and pings you with that time. Review on your phone
 in YouTube Studio, and cancel the schedule there if it shouldn't go out.
 
+## Results
+
+`python pipeline.py report` prints mean views after 7 days for each weekday × time slot, and a line
+per video (views at 48h and 7 days, average view %, subscribers gained). It reads YouTube Analytics
+with its own read-only token: run `python scripts/youtube_auth.py --analytics client_secret.json`
+once and export `YT_ANALYTICS_REFRESH_TOKEN` (plus `YT_CLIENT_ID` / `YT_CLIENT_SECRET`). Analytics
+lags 2-3 days, and one video a day is about one data point per slot a month, so read it as a rough
+signal.
+
 ## Templates
 
 | Template | What it draws | Hand-checked spec |

@@ -5,6 +5,7 @@
   python pipeline.py generate <slug>           (re)write specs/<slug>.yaml with Claude
   python pipeline.py verify <slug>             test the spec's code and traces
   python pipeline.py render <slug> [--preview] render without uploading
+  python pipeline.py report                    views per publish slot (YouTube Analytics)
 
 End to end = spec (saved one, or generate + retry until it verifies) -> verify -> render
 -> upload as PRIVATE with a scheduled publish slot (shorts/slots.py) -> ping you.
@@ -87,7 +88,7 @@ def run(problem, upload=False, quality="final", schedule=True):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("command", choices=["next", "run", "generate", "verify", "render"])
+    ap.add_argument("command", choices=["next", "run", "generate", "verify", "render", "report"])
     ap.add_argument("slug", nargs="?")
     ap.add_argument("--upload", action="store_true", help="upload to YouTube as private")
     ap.add_argument("--preview", action="store_true", help="fast low-res render")
@@ -95,6 +96,11 @@ def main():
                     help="upload without a publish time (stays private until you publish it)")
     a = ap.parse_args()
     quality = "preview" if a.preview else "final"
+
+    if a.command == "report":
+        from shorts.report import main as report
+        report()
+        return
 
     if a.command == "next":
         problem = store.next_problem()
