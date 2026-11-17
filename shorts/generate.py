@@ -46,6 +46,21 @@ def _inline_refs(schema):
     return walk(schema)
 
 
+CODE_KEYS = {"code", "traced_code"}  # Python source: its \n escapes are meant literally
+
+
+def _fix_newlines(node):
+    """Models sometimes write a caption's line break as the two characters backslash-n
+    (double-escaped in the tool JSON). Turn those into real newlines, outside code."""
+    if isinstance(node, dict):
+        return {k: v if k in CODE_KEYS else _fix_newlines(v) for k, v in node.items()}
+    if isinstance(node, list):
+        return [_fix_newlines(v) for v in node]
+    if isinstance(node, str):
+        return node.replace("\\n", "\n")
+    return node
+
+
 def generate(problem: dict, feedback: str | None = None) -> Spec:
     templates = "\n\n".join(TEMPLATES[t].DOC for t in problem["templates"])
     reference = spec_path("two-sum").read_text()
@@ -69,5 +84,6 @@ def generate(problem: dict, feedback: str | None = None) -> Spec:
     if data is None:
         raise ValueError(f"no submit_spec tool call (stop_reason={msg.stop_reason}); "
                          "return the spec by calling the submit_spec tool")
+    data = _fix_newlines(data)
     data.update(slug=problem["slug"], number=problem["number"])
     return Spec.model_validate(data)

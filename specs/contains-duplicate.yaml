@@ -7,7 +7,9 @@ hook:
   bottom: Spot it fast.
   spoken_top: Can you tell if a list repeats a number?
   spoken_bottom: Spot it fast.
-statement: Given a list of numbers, say whether\nany value shows up more than once.
+statement: |-
+  Given a list of numbers, say whether
+  any value shows up more than once.
 array_arg: nums
 show_args: []
 example:
@@ -146,7 +148,9 @@ approaches:
     One pass. {steps} steps
     instead of {first_steps}.
   memory_label: seen
-challenge: Pause. Can you do it\nin ONE pass?
+challenge: |-
+  Pause. Can you do it
+  in ONE pass?
 outro:
 - A set makes the lookup instant.
 - |-

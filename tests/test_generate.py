@@ -35,3 +35,16 @@ def test_missing_tool_call_is_a_clear_error(monkeypatch):
     monkeypatch.setattr(gen.anthropic, "Anthropic", lambda: fake)
     with pytest.raises(ValueError, match="submit_spec"):
         gen.generate(PROBLEM)
+
+
+def test_literal_backslash_n_in_captions_becomes_newline(monkeypatch):
+    spec = yaml.safe_load(store.spec_path("two-sum").read_text())
+    spec["statement"] = "Find two numbers\\nthat add up."
+    spec["challenge"] = "Pause.\\nOne pass?"
+    code = spec["approaches"][0]["code"]
+    fake = FakeClient([SimpleNamespace(type="tool_use", name="submit_spec", input=spec)])
+    monkeypatch.setattr(gen.anthropic, "Anthropic", lambda: fake)
+    out = gen.generate(PROBLEM)
+    assert out.statement == "Find two numbers\nthat add up."
+    assert out.challenge == "Pause.\nOne pass?"
+    assert out.approaches[0].code == code  # code is left alone
