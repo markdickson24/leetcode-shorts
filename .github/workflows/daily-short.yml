@@ -9,7 +9,7 @@ on:
         description: "Problem slug (blank = next in queue)"
         required: false
       upload:
-        description: "Upload to YouTube (as private)"
+        description: "Upload to YouTube (private; scheduled to go public tomorrow if PUBLISH_SCHEDULE=on and 'schedule' is ticked)"
         type: boolean
         default: true
       schedule:
@@ -60,7 +60,9 @@ jobs:
           NOTIFY_WEBHOOK_URL: ${{ secrets.NOTIFY_WEBHOOK_URL }}
           SLUG: ${{ inputs.slug }}
           UPLOAD: ${{ github.event_name == 'schedule' || inputs.upload }}
-          SCHEDULE: ${{ github.event_name == 'schedule' || inputs.schedule }}
+          # Off until the repo variable PUBLISH_SCHEDULE is "on" (set it once Google's audit passes;
+          # before that, API uploads are locked private and a publish time would never happen).
+          SCHEDULE: ${{ vars.PUBLISH_SCHEDULE == 'on' && (github.event_name == 'schedule' || inputs.schedule) }}
         run: |
           FLAGS=""
           if [ "$UPLOAD" = "true" ]; then FLAGS="--upload"; fi

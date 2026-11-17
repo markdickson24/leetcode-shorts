@@ -111,7 +111,9 @@ Trees and grids need new drawing code; the array row and pointers won't cover th
 - **Scheduled publishing.** Each upload is scheduled to go public tomorrow at a rotating weekday ×
   time slot (07:00, 12:00, 17:00, 20:00 ET; see `shorts/slots.py`), so you can learn which times work.
   It goes public at that slot unless you cancel the schedule in Studio. `--no-schedule` (or the
-  workflow's `schedule` input) keeps a video private instead.
+  workflow's `schedule` input) keeps a video private instead. In Actions, scheduling stays off until
+  you set the repository variable `PUBLISH_SCHEDULE` to `on`: do that once Google's audit passes,
+  since until then API uploads are locked private and the publish time would never happen.
 - **ElevenLabs free tier:** API access only to premade voices, and, as far as I know, no commercial
   use. You need a paid plan before monetizing.
 - **Don't let it become slop.** YouTube demonetizes mass-produced, near-identical videos. The review

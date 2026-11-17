@@ -2,6 +2,7 @@
 import os
 from datetime import date, datetime, timedelta
 from statistics import mean
+from zoneinfo import ZoneInfo
 
 from . import store
 from .slots import TZ, WINDOWS
@@ -9,34 +10,43 @@ from .slots import TZ, WINDOWS
 SCOPES = ["https://www.googleapis.com/auth/yt-analytics.readonly",
           "https://www.googleapis.com/auth/youtube.readonly"]
 WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-WINDOWS_DAYS = {"48h": 1, "7d": 6}  # end date = local publish date + N days
+# Analytics only has whole days, in Pacific time. Ending each window N calendar days after the publish
+# date gives every slot at least 48h / 7 days of data; slots differ only in the long tail, where
+# Shorts views have mostly decayed.
+ANALYTICS_TZ = ZoneInfo("America/Los_Angeles")
+WINDOWS_DAYS = {"48h": 2, "7d": 7}
+LAG_DAYS = 3  # Analytics fills in over 2-3 days; newer windows would be undercounted
 
 
 def scheduled(entries: dict) -> dict:
     return {slug: e for slug, e in entries.items() if e.get("weekday") and e.get("window")}
 
 
-def _publish_date(e) -> date:
-    return datetime.fromisoformat(e["publish_at"]).astimezone(TZ).date()
+def _publish_date(e, tz=TZ) -> date:
+    return datetime.fromisoformat(e["publish_at"]).astimezone(tz).date()
 
 
-def fetch_stats(entries: dict) -> dict:
-    """slug -> {views_48h, views_7d, avg_view_pct, subs}; None where there's no data (yet)."""
+def _client():
     from google.oauth2.credentials import Credentials
     from googleapiclient.discovery import build
 
     creds = Credentials(None, refresh_token=os.environ["YT_ANALYTICS_REFRESH_TOKEN"],
                         client_id=os.environ["YT_CLIENT_ID"], client_secret=os.environ["YT_CLIENT_SECRET"],
                         token_uri="https://oauth2.googleapis.com/token", scopes=SCOPES)
-    yta = build("youtubeAnalytics", "v2", credentials=creds, cache_discovery=False)
-    today = datetime.now(TZ).date()
+    return build("youtubeAnalytics", "v2", credentials=creds, cache_discovery=False)
+
+
+def fetch_stats(entries: dict, client=None, today: date | None = None) -> dict:
+    """slug -> {views_48h, views_7d, avg_view_pct, subs}; None where there's no complete data yet."""
+    yta = client or _client()
+    today = today or datetime.now(ANALYTICS_TZ).date()
     out = {}
     for slug, e in scheduled(entries).items():
-        d0 = _publish_date(e)
+        d0 = _publish_date(e, ANALYTICS_TZ)
         s = {"views_48h": None, "views_7d": None, "avg_view_pct": None, "subs": None}
         for name, days in WINDOWS_DAYS.items():
             end = d0 + timedelta(days=days)
-            if end > today:
+            if end > today - timedelta(days=LAG_DAYS):
                 continue
             rows = yta.reports().query(
                 ids="channel==MINE", metrics="views,averageViewPercentage,subscribersGained",
