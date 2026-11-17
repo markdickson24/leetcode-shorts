@@ -1,0 +1,169 @@
+slug: contains-duplicate
+number: 217
+title: Contains Duplicate
+function_name: contains_duplicate
+hook:
+  top: Same number twice?
+  bottom: Spot it fast.
+  spoken_top: Can you tell if a list repeats a number?
+  spoken_bottom: Spot it fast.
+statement: Given a list of numbers, say whether\nany value shows up more than once.
+array_arg: nums
+show_args: []
+example:
+  args:
+    nums:
+    - 4
+    - 7
+    - 1
+    - 9
+    - 3
+    - 7
+    - 2
+  expected: true
+tests:
+- args:
+    nums:
+    - 4
+    - 7
+    - 1
+    - 9
+    - 3
+    - 7
+    - 2
+  expected: true
+- args:
+    nums:
+    - 1
+    - 2
+    - 3
+    - 4
+  expected: false
+- args:
+    nums:
+    - 5
+  expected: false
+- args:
+    nums:
+    - 8
+    - 8
+  expected: true
+- args:
+    nums:
+    - -1
+    - 0
+    - 1
+    - -1
+  expected: true
+- args:
+    nums:
+    - 10
+    - 20
+    - 30
+    - 40
+    - 50
+    - 60
+  expected: false
+- args:
+    nums: []
+  expected: false
+compare: exact
+approaches:
+- name: Brute force
+  template: pairs_brute
+  time: O(n²)
+  space: O(1)
+  code: |
+    def contains_duplicate(nums):
+        n = len(nums)
+        for i in range(n):
+            for j in range(i + 1, n):
+                if nums[i] == nums[j]:
+                    return True
+        return False
+  traced_code: |
+    def contains_duplicate(nums):
+        n = len(nums)
+        checks = 0
+        for i in range(n):
+            for j in range(i + 1, n):
+                checks += 1
+                same = nums[i] == nums[j]
+                emit(i=i, j=j, label=f"{nums[i]} vs {nums[j]}", hit=same,
+                     say_bg={1: "Compare every pair,\none by one...",
+                             7: "...so many comparisons."}.get(checks))
+                if same:
+                    return True
+        return False
+  highlights:
+    check: 3
+    hit: 4
+  intro: |-
+    Easiest idea: compare
+    every pair of numbers.
+  verdict: |-
+    Found a twin, but it took
+    {steps} checks. That's O(n²).
+  memory_label: seen
+- name: HashSet
+  template: hashmap_scan
+  time: O(n)
+  space: O(n)
+  code: |
+    def contains_duplicate(nums):
+        seen = set()
+        for i, x in enumerate(nums):
+            if x in seen:
+                return True
+            seen.add(x)
+        return False
+  traced_code: |
+    def contains_duplicate(nums):
+        seen = set()
+        for i, x in enumerate(nums):
+            ev = dict(i=i, label=f"x = {x}",
+                      query=f"{x} in seen?", found=x in seen)
+            if x in seen:
+                j = nums.index(x)
+                emit(**ev, match=j, result="return True",
+                     say=f"{x} again! We stored it at\nindex {j}. Duplicate!")
+                return True
+            if i == 0:
+                ev["say"] = f"{x} is new, so\ndrop it in the set."
+            emit(**ev, store=f"{x}")
+            seen.add(x)
+        return False
+  highlights:
+    init: 0
+    compute: 1
+    lookup: 2
+    found: 3
+    store: 4
+  intro: |-
+    Keep a set of numbers seen.
+    Ask: have I met you before?
+  verdict: |-
+    One pass. {steps} steps
+    instead of {first_steps}.
+  memory_label: seen
+challenge: Pause. Can you do it\nin ONE pass?
+outro:
+- A set makes the lookup instant.
+- |-
+  Did you get it?
+  Tell me in the comments.
+cta: Follow for a new problem daily
+youtube:
+  title: 'Contains Duplicate in 60 seconds (O(n²) → O(n)) #shorts'
+  description: |-
+    LeetCode #217, Contains Duplicate: brute force pairs vs the one-pass HashSet trick, animated step by step.
+
+    #leetcode #coding #python #codinginterview #shorts
+  tags:
+  - leetcode
+  - contains duplicate
+  - coding interview
+  - python
+  - algorithms
+  - hashset
+  - data structures
