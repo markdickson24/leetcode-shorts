@@ -1,0 +1,203 @@
+slug: container-with-most-water
+number: 11
+title: Container With Most Water
+function_name: max_area
+hook:
+  top: Fill it to the brim?
+  bottom: Think like a pond.
+  spoken_top: Want to hold the most water?
+  spoken_bottom: Think like a pond.
+statement: |-
+  Each number is a wall's height. Pick two walls
+  to hold the most water between them.
+array_arg: h
+show_args: []
+example:
+  args:
+    h:
+    - 3
+    - 8
+    - 2
+    - 7
+    - 5
+    - 6
+  expected: 24
+tests:
+- args:
+    h:
+    - 3
+    - 8
+    - 2
+    - 7
+    - 5
+    - 6
+  expected: 24
+- args:
+    h:
+    - 1
+    - 1
+  expected: 1
+- args:
+    h:
+    - 4
+    - 3
+    - 2
+    - 1
+    - 4
+  expected: 16
+- args:
+    h:
+    - 1
+    - 2
+    - 1
+  expected: 2
+- args:
+    h:
+    - 5
+    - 5
+    - 5
+    - 5
+  expected: 15
+- args:
+    h:
+    - 2
+    - 3
+    - 10
+    - 5
+    - 7
+    - 8
+    - 9
+  expected: 36
+- args:
+    h:
+    - 0
+    - 0
+    - 7
+  expected: 0
+- args:
+    h:
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+  expected: 6
+compare: exact
+approaches:
+- name: Brute force
+  template: pairs_brute
+  time: O(n²)
+  space: O(1)
+  code: |
+    def max_area(h):
+        n = len(h)
+        best = 0
+        for i in range(n):
+            for j in range(i + 1, n):
+                area = min(h[i], h[j]) * (j-i)
+                best = max(best, area)
+        return best
+  traced_code: |
+    def max_area(h):
+        n = len(h)
+        best = 0
+        checks = 0
+        for i in range(n):
+            for j in range(i + 1, n):
+                checks += 1
+                area = min(h[i], h[j]) * (j-i)
+                new = area > best
+                best = max(best, area)
+                emit(i=i, j=j, label=f"min({h[i]}, {h[j]}) × {j-i} = {area}", hit=new,
+                     best=f"best = {best}",
+                     say_bg={1: "Width times the shorter wall.\nThat's the water.",
+                             6: "Try every single pair...",
+                             12: "...so many pairs."}.get(checks))
+        return best
+  highlights:
+    check: 4
+    hit: 5
+  intro: |-
+    Easy idea: try every pair of walls,
+    keep the biggest.
+  verdict: |-
+    Right answer, but {steps} checks.
+    That's O(n²).
+  memory_label: seen
+- name: Two pointers
+  template: two_pointers
+  time: O(n)
+  space: O(1)
+  code: |
+    def max_area(h):
+        l, r = 0, len(h) - 1
+        best = 0
+        while l < r:
+            area = min(h[l], h[r]) * (r - l)
+            best = max(best, area)
+            if h[l] < h[r]:
+                l += 1
+            else:
+                r -= 1
+        return best
+  traced_code: |
+    def max_area(h):
+        l, r = 0, len(h) - 1
+        best = 0
+        bl, br = l, r
+        emit(l=l, r=r, line=0, label="start wide",
+             say="Start with the widest container.")
+        step = 0
+        while l < r:
+            step += 1
+            area = min(h[l], h[r]) * (r - l)
+            if area > best:
+                best = area
+                bl, br = l, r
+            ev = dict(l=l, r=r, line=4, label=f"min({h[l]}, {h[r]}) × {r - l} = {area}",
+                      best=f"best = {best}")
+            if step == 1:
+                ev["say"] = "Width shrinks every move,\nso height must make up for it."
+            emit(**ev)
+            if h[l] < h[r]:
+                emit(l=l, r=r, line=6, label=f"{h[l]} < {h[r]}: move left",
+                     detail="the short wall limits us",
+                     say_bg="Move the shorter wall." if step == 1 else None)
+                l += 1
+            else:
+                emit(l=l, r=r, line=8, label=f"{h[l]} ≥ {h[r]}: move right",
+                     detail="the short wall limits us")
+                r -= 1
+        emit(l=bl, r=br, line=9, label=f"best = {best}", hit=True,
+             result=f"return {best}",
+             say=f"Best pond holds {best}.")
+        return best
+  highlights: {}
+  intro: |-
+    Start at both ends. Always move
+    the shorter wall inward.
+  verdict: One sweep. {steps} steps instead of {first_steps}.
+  memory_label: seen
+challenge: |-
+  Pause. Why is it safe to
+  drop the shorter wall?
+outro:
+- The short wall can't do better. Move it.
+- |-
+  Did you get it?
+  Tell me in the comments.
+cta: Follow for a new problem daily
+youtube:
+  title: 'Container With Most Water in 60 seconds (O(n²) → O(n)) #shorts'
+  description: |-
+    LeetCode #11, Container With Most Water: brute force vs the two pointers trick, animated step by step.
+
+    #leetcode #coding #python #codinginterview #shorts
+  tags:
+  - leetcode
+  - container with most water
+  - coding interview
+  - python
+  - algorithms
+  - two pointers
+  - data structures
