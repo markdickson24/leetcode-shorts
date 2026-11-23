@@ -2,16 +2,17 @@
 
   python pipeline.py next [--upload]           next problem in the queue, end to end
   python pipeline.py run <slug> [--upload]     one problem, end to end
-  python pipeline.py generate <slug>           (re)write specs/<slug>.yaml with Claude
+  python pipeline.py generate <slug>           (re)write specs/<slug>.yaml with Claude (needs USE_CLAUDE_API=1)
   python pipeline.py verify <slug>             test the spec's code and traces
   python pipeline.py render <slug> [--preview] render without uploading
   python pipeline.py report                    views per publish slot (YouTube Analytics)
 
-End to end = spec (saved one, or generate + retry until it verifies) -> verify -> render
+End to end = saved spec (hand-written; Claude API generation only with USE_CLAUDE_API=1) -> verify -> render
 -> upload as PRIVATE with a scheduled publish slot (shorts/slots.py) -> ping you.
 It goes public at that slot unless you cancel it in Studio; --no-schedule keeps it private.
 """
 import argparse
+import os
 import sys
 
 from shorts import store
@@ -21,11 +22,15 @@ MAX_ATTEMPTS = 3
 
 
 def ensure_spec(problem, regenerate=False):
-    """Load a saved spec, or have Claude write one, feeding failures back until it verifies."""
+    """Load a saved spec. Generating one with the Claude API is opt-in (USE_CLAUDE_API=1):
+    by default specs are written by hand (e.g. in Claude Code) and committed ahead of time."""
     path = store.spec_path(problem["slug"])
     if path.exists() and not regenerate:
         spec = store.load_spec(problem["slug"])
         return spec, verify(spec)
+    if os.environ.get("USE_CLAUDE_API") != "1":
+        raise SystemExit(f"no spec for {problem['slug']}: write specs/{problem['slug']}.yaml and commit it "
+                         "(or set USE_CLAUDE_API=1 to generate one with the Claude API)")
 
     from shorts.generate import generate
     feedback = None

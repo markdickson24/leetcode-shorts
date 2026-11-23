@@ -35,3 +35,13 @@ def test_bad_highlight_is_caught():
 
 def test_speakable():
     assert speakable("That's O(n²).\nOne pass → done") == "That's O of n squared. One pass to done"
+
+
+def test_missing_spec_stops_without_calling_claude(monkeypatch, tmp_path):
+    import pipeline
+    import shorts.generate as gen
+    monkeypatch.delenv("USE_CLAUDE_API", raising=False)
+    monkeypatch.setattr(store, "SPECS", tmp_path)
+    monkeypatch.setattr(gen, "generate", lambda *a, **k: pytest.fail("called the Claude API"))
+    with pytest.raises(SystemExit, match="no spec for new-problem"):
+        pipeline.ensure_spec({"slug": "new-problem", "number": 9999, "title": "New", "templates": ["stack"]})

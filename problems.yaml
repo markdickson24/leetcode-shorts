@@ -1,5 +1,5 @@
 # The publishing queue, in order. A problem is only picked once every template it lists
-# exists in shorts/templates/. Problems with a file in specs/ use it; the rest get one from Claude.
+# exists in shorts/templates/. Each needs a committed file in specs/ (written by hand, e.g. in Claude Code) before its day comes up.
 - {slug: two-sum, number: 1, title: Two Sum, templates: [pairs_brute, hashmap_scan]}
 - {slug: contains-duplicate, number: 217, title: Contains Duplicate, templates: [pairs_brute, hashmap_scan]}
 

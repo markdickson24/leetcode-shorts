@@ -1,0 +1,82 @@
+slug: longest-substring-without-repeating-characters
+number: 3
+title: Longest Substring Without Repeating Characters
+function_name: length_of_longest_substring
+hook:
+  top: One repeat letter
+  bottom: ruins everything.
+  spoken_top: One repeated letter...
+  spoken_bottom: and the whole stretch is ruined.
+statement: |-
+  How long is the longest run
+  of letters with no repeats?
+array_arg: s
+show_args: []
+example:
+  args: {s: "loopsyl"}
+  expected: 5
+tests:
+  - {args: {s: "loopsyl"}, expected: 5}
+  - {args: {s: ""}, expected: 0}
+  - {args: {s: " "}, expected: 1}
+  - {args: {s: "aaaa"}, expected: 1}
+  - {args: {s: "abcdef"}, expected: 6}
+  - {args: {s: "abba"}, expected: 2}
+  - {args: {s: "dvdf"}, expected: 3}
+  - {args: {s: "tmmzuxt"}, expected: 5}
+approaches:
+  - name: Sliding window
+    template: sliding_window
+    time: O(n)
+    space: O(k)
+    code: |
+      def length_of_longest_substring(s):
+          seen, l, best = set(), 0, 0
+          for r in range(len(s)):
+              while s[r] in seen:
+                  seen.remove(s[l])
+                  l += 1
+              seen.add(s[r])
+              best = max(best, r - l + 1)
+          return best
+    traced_code: |
+      def length_of_longest_substring(s):
+          seen, l, best = set(), 0, 0
+          shrinks = 0
+          for r in range(len(s)):
+              while s[r] in seen:
+                  shrinks += 1
+                  emit(l=l, r=r, line=2, label=f"'{s[r]}' is already inside", detail=f"drop '{s[l]}': L moves right",
+                       say="A repeat! Shrink from the\nleft until it's gone." if shrinks == 1 else None)
+                  seen.remove(s[l])
+                  l += 1
+              seen.add(s[r])
+              new = r - l + 1 > best
+              best = max(best, r - l + 1)
+              emit(l=l, r=r, line=6, label=f"'{s[l:r + 1]}': no repeats", hit=new, best=f"best = {best}",
+                   say_bg="Every letter is new,\nso R keeps growing." if r == 1 else None)
+          emit(l=l, r=len(s) - 1, line=7, label="done", best=f"best = {best}", result=f"return {best}",
+               say=f"Longest clean run:\n{best} letters." if s else None)
+          return best
+    highlights: {}
+    intro: |-
+      Grow a window to the right.
+      Shrink it when a letter repeats.
+    verdict: |-
+      {steps} steps. Each letter enters
+      and leaves the window once.
+challenge: ""
+outro:
+  - |-
+    A set plus two pointers.
+    O(n) time, no nested loops.
+  - |-
+    Did you try every substring?
+    Be honest in the comments.
+youtube:
+  title: Longest Substring Without Repeating Characters, sliding window #shorts
+  description: |-
+    LeetCode #3, Longest Substring Without Repeating Characters: a sliding window that grows on the right and shrinks on the left whenever a letter repeats. O(n) time.
+
+    #leetcode #coding #python #codinginterview #shorts
+  tags: [leetcode, longest substring without repeating characters, sliding window, coding interview, python, algorithms]
